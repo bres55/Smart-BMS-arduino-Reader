@@ -60,6 +60,7 @@ void loop()
   result = BMS_modbus.readHoldingRegisters(0x0000, 0x028);
   if (result == BMS_modbus.ku8MBSuccess)
   {
+    // settings
     CellOverVP = BMS_modbus.getResponseBuffer(0x00) / 1000.0f;
     Serial.print(",");
     Serial.print(CellOverVP);
@@ -147,6 +148,8 @@ void loop()
     Serial.print(DSGUTR);
     Serial.print(",,,");
 
+    // Cell voltages... for a 8S
+
     Cellv1 = BMS_modbus.getResponseBuffer(0x15) / 1000.0f;
     Serial.print(Cellv1);
     Serial.print(",");
@@ -178,6 +181,8 @@ void loop()
     Cellv8 = BMS_modbus.getResponseBuffer(0x1c) / 1000.0f;
     Serial.print(Cellv8);
     Serial.print(",,,,");
+
+    // unknown at moment, need to explore, but believe x27 is mosfet control
 
     un1 = BMS_modbus.getResponseBuffer(0x1d) / 100.0f;
     Serial.print(un1);
