@@ -146,7 +146,7 @@ void loop()
     DSGUTR = BMS_modbus.getResponseBuffer(0x0f) / 100.0f;
     Serial.print(DSGUTR);
     Serial.print(",,,");
-    
+
     Cellv1 = BMS_modbus.getResponseBuffer(0x15) / 1000.0f;
     Serial.print(Cellv1);
     Serial.print(",");
@@ -177,8 +177,8 @@ void loop()
 
     Cellv8 = BMS_modbus.getResponseBuffer(0x1c) / 1000.0f;
     Serial.print(Cellv8);
-    Serial.print(",");
-    
+    Serial.print(",,,,");
+
     un1 = BMS_modbus.getResponseBuffer(0x1d) / 100.0f;
     Serial.print(un1);
     Serial.print(",");
@@ -218,8 +218,22 @@ void loop()
     un10 = BMS_modbus.getResponseBuffer(0x26) / 100.0f;
     Serial.print(un10);
     Serial.print(",");
-    
-result = BMS_modbus.writeSingleRegister(0x0027, 0);
+
+    // didn't work
+    // result = BMS_modbus.writeSingleRegister(0x0027, 1);
+
+    // try mosfet control hex
+    // off on
+    // MySoftSerial.print("DD 5A 00 02 56 78 FF 30 77 DD 5A E1 02 00 01 FF 1C 77 DD 5A 01 02 00 00 FF FD 77");
+    /*
+        MySoftSerial.print("DD 5A 00 02 56 78 FF 30 77");
+        delay(500);
+        MySoftSerial.print("DD 5A E1 02 00 01 FF 1C 77");
+        delay(500);
+        MySoftSerial.print("DD 5A 01 02 00 00 FF FD 77");
+    */
+    // MySoftSerial.print("DD A5 03 00 FF FD 77"); //read 03: Read basic information and status
+
 
     un11 = BMS_modbus.getResponseBuffer(0x27) / 100.0f;
     Serial.print(un11);
@@ -232,20 +246,13 @@ result = BMS_modbus.writeSingleRegister(0x0027, 0);
   else
   {
     rs485DataReceived = false;
-    Serial.println("Error on BMS_modbus.readHoldingRegisters(0x0000, 20); ");
+    Serial.println("Error on BMS_modbus.readHoldingRegisters(0x0000, 28); ");
     // Serial.print("00.00,00.00,00.00,00.00,00.00,00.00,00.00,00.00,00.00,00.00,00.00,00.00,00.00,");
   }
   // ----------------------------------------------------------------------------------------------
 
-  /*
-    // try mosfet control
-    // off off
-    MySoftSerial.print("dd 5a 00 02 56 78 ff 30 77");
-    delay(500);
-    MySoftSerial.print("dd 5a e1 02 00 00 ff 1d 77");
-    delay(500);
-    MySoftSerial.print("dd 5a 01 02 00 00 ff fd 77");
-  */
+
+
   // rrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrr
   // new line, what ever happens
   Serial.println("");
