@@ -1,4 +1,4 @@
-// 21/3/2018
+// 22/3/2018
 // Using Arduino Mega256
 // https://github.com/bres55/Smart-BMS-arduino-Reader/blob/master/README.md
 /* If using UNO
@@ -245,16 +245,16 @@ void loop()
     mosfetnow = Mosfet_control; // temp var to work on, of mosfet control
 
     if (inStringpc.equalsIgnoreCase("doff")) { //Discharge Mosfet, not case sensitive.
-      bitClear(mosfetnow, 1);                  //  If we are wanting it off, need to set the bit 1 high
+      bitClear(mosfetnow, 1);                  //  If we are wanting it off, need to set the bit 1 low
     }
     if (inStringpc.equalsIgnoreCase("don")) {
-      bitSet(mosfetnow, 1);                  //  If we are wanting it on, need to set the bit 1 low
+      bitSet(mosfetnow, 1);                  //  If we are wanting it on, need to set the bit 1 high
     }
     if (inStringpc.equalsIgnoreCase("coff")) { // Charge Mosfet.
-      bitClear(mosfetnow, 0);                  //  If we are wanting it off, need to set the bit 0 high
+      bitClear(mosfetnow, 0);                  //  If we are wanting it off, need to set the bit 0 low
     }
     if (inStringpc.equalsIgnoreCase("con")) {
-      bitSet(mosfetnow, 0);                  //  If we are wanting it on, need to set the bit 0 low
+      bitSet(mosfetnow, 0);                  //  If we are wanting it on, need to set the bit 0 high
     }
     // could do more permutations eg
     //    if (inStringpc.equalsIgnoreCase("doffcoff")) {
