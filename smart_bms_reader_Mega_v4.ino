@@ -1,4 +1,4 @@
-// 22/3/2018
+// 23/3/2018
 // Using Arduino Mega256
 // https://github.com/bres55/Smart-BMS-arduino-Reader/blob/master/README.md
 /* If using UNO
@@ -65,7 +65,7 @@ void loop()
   result = BMS_modbus.readHoldingRegisters(0x0000, 0x028);
   if (result == BMS_modbus.ku8MBSuccess)
   {
-    /* leave these for mo
+  //  /* leave these for mo
       // settings
       CellOverVP = BMS_modbus.getResponseBuffer(0x00) / 1000.0f;
       Serial.print(",");
@@ -152,8 +152,8 @@ void loop()
 
       DSGUTR = BMS_modbus.getResponseBuffer(0x0f) / 100.0f;
       Serial.print(DSGUTR);
-      Serial.print(",,,");
-    */
+      Serial.println(",,,");
+ //   */
     
     // Cell voltages... for a 8S
 
@@ -321,6 +321,7 @@ void loop()
   // rrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrr
   // new line, what ever happens
   Serial.println("");
+  Serial.println("");
   // How often do I want this data? Every 5,,10 seconds??
   delay(4000);
   // dont want to be over run with data!
@@ -472,6 +473,7 @@ void control_off_on()
   MySerial.write(255);
   MySerial.write(27);
   MySerial.write(119);
+
 }
 //--------------------------------------------------------------------------
 void control_off_off()
