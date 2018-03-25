@@ -203,7 +203,7 @@ void loop()
     Serial.print(", ");
 
     // unknown at moment, need to explore,
-
+    // suspect these are used for an S16 system, since its the same sw on all the various units.
     un1 = BMS_modbus.getResponseBuffer(0x1d) / 100.0f;
     Serial.print(" Unknown ");
     Serial.print(un1);
@@ -345,25 +345,25 @@ void loop()
   }                                           // to go back to normal run exit
   if (inStringpc.equalsIgnoreCase("exit"))    // Close, same as EXIT on JBDTools
     call_Exit_Mode();                         // BUT, if any mosfet controls are actioned, it effectively runs EXIT
-}                                           // JBDTools has same issue.
-//  bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb balance control end    bbbbbbbbbbbbbbb
-// get hardware info
-call_Hardware_info();    // dont really need this
-get_bms_feedback_25();   // or this
+  // JBDTools has same issue.
+  //  bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb balance control end    bbbbbbbbbbbbbbb
+  // get hardware info
+  call_Hardware_info();    // dont really need this
+  get_bms_feedback_25();   // or this
 
-// get basic information
-call_Basic_info();      // used to get BALANCE STATE byte 17dec
-get_bms_feedback_34();   // 
+  // get basic information
+  call_Basic_info();      // used to get BALANCE STATE byte 17dec
+  get_bms_feedback_34();   //
 
-// tidy up
-Serial.print(inStringpc);
-inStringpc = ""; //clear inString from getcommand
-// new line, what ever happens
-Serial.println("");
-Serial.println("");
-// How often do I want this data? Every 5,,10 seconds??
-delay(4000);
-// dont want to be over run with data!
+  // tidy up
+  Serial.print(inStringpc);
+  inStringpc = ""; //clear inString from getcommand
+  // new line, what ever happens
+  Serial.println("");
+  Serial.println("");
+  // How often do I want this data? Every 5,,10 seconds??
+  delay(4000);
+  // dont want to be over run with data!
 }
 // eeeeeeeeeeeeeeeeeeeeennnnnnnnnnnnnnnnnnnnnnndddddddddddddddddddddd
 //     END
@@ -585,15 +585,13 @@ void get_bms_feedback_34()
     for (int i = 0; i < 34; i++) {
       incomingByte = MySerial.read();
       if (i == 17) {
-        BalanceCode = (incomingByte);
-      } // get marker for balance code
+        BalanceCode = (incomingByte);  // save balance code, but continue with the rest, may want it late
+      }
       inString += (char)incomingByte;  // convert the incoming byte to a char and add it to the string
     }
   }
-  String stringOne =  String(BalanceCode, BIN);
   Serial.print(" BC= ");
-  // Serial.print(BalanceCode);
-  Serial.print(stringOne);
+ Serial.print(BalanceCode,BIN); 
   inString = "";
 }
 //--------------------------------------------------------------------------
