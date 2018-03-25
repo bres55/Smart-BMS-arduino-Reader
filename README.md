@@ -2,11 +2,19 @@ Reads this smart BMS,
 https://www.aliexpress.com/item/8S-60A-Li-ion-LiPo-BMS-PCM-PCB-battery-protection-board-for-8-Packs-18650-Battery/32844170262.html,
 using an Arduino Mega256, but there are options within code to us an arduino UNO, with SoftwareSerial.
 I am still experimenting with it. Registers found with trial and error.
-Mosfet control is now available, using the serial monitor
-con= Charge Mosfet ON
-coff= Charge Mosfet OFF
-don= DisCharge Mosfet ON
-doff= DisCharge Mosfet OFF
+Mosfet control is now available, using the serial monitor.
+con= Charge Mosfet ON.
+coff= Charge Mosfet OFF.
+don= DisCharge Mosfet ON.
+doff= DisCharge Mosfet OFF.
+Temperatures of the probes now displayed, 2 of them
+balance of the cells is shown, a bit cryptically at mo.
+Balance control, same as JBDTools
+bodd= balance odd cells
+beven= balance even cells
+Close, effecively stops balancing, but only as long as no Mosfet controls are actioned, otherwise it effectively runs EXIT, same issue appears on JBDTools.
+exit= exit
+
 
 I was provided this link from the supplier of my BMS
 https://drive.google.com/file/d/0B3UXptx89r4NZ3VLTHlVS1ZGTTQ/view
@@ -20,3 +28,5 @@ This program allows you to test the smart bms.
 
 
 
+Having taken the time to format this page github, wraps it all together...why???
+How do I stop that, to make this more legible??
