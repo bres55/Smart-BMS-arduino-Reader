@@ -23,7 +23,7 @@ Cable from the BMS, with balance socket facing you, on the left hand side, the c
 Gnd, Rx, Tx, 5v.
 connect these to the arduino, Gnd to Gnd, 5v to 5v, if you use SoftwareSerial, Rx to pin 11, Tx to pin 10, but can be changed.
 That way I can see the output from the Serial.print commands, and later using something like coolterm, save this data and analyse it.
-This all to be used in my other project, so I wont control using serial monitor myself, I will be using other data to make the swith overs as and when required.
+This all to be used in my other project, so I wont control using serial monitor myself, I will be using other data to make the switch overs, as and when required.
 This program allows you to test the smart bms.
 
 
