@@ -1,4 +1,4 @@
-// 25/3/2018
+// 27/3/2018
 // Using Arduino Mega256
 // https://github.com/bres55/Smart-BMS-arduino-Reader/blob/master/README.md
 /* If using UNO
@@ -20,9 +20,9 @@
 //char inString = "";      // string to hold input
 String inString = "";      // string to hold input
 String inStringpc = "";    // string to hold PC input
-int incomingByte, BalanceCode;
-int length;
-
+int incomingByte, BalanceCode, Length;
+// int length;
+int inInts[40];           // an array to hold incoming data, not seen any longer than 34 bytes
 float CellOverVP, CellOverVPR, CellUnderVP, CellUnderVPR, PackOverVP, PackOverVPR, PackUnderVP, PackUnderVPR;
 float CHGOCmA, DSGOCmA, PackVoltage, PackCurrent, RemainCapacity;
 int CHGOT, CHGUT, DSGOT, DSGUT, CHGOTR, CHGUTR, DSGOTR, DSGUTR;
@@ -30,6 +30,7 @@ float un1, un2, un3, un4, un5, un6, un7, un8, TempProbe1, TempProbe2, un12;
 float Cellv1, Cellv2, Cellv3, Cellv4, Cellv5, Cellv6, Cellv7, Cellv8;
 uint8_t result;
 byte Mosfet_control, mosfetnow;
+
 
 // initialise ModbusMaster object
 ModbusMaster BMS_modbus; //old node
@@ -342,21 +343,31 @@ void loop()
   }
   if (inStringpc.equalsIgnoreCase("close")) { // Close, same as CLOSE on JBDTools
     call_Close_All();                         // Effectively, stops balancing, even if balancing in settings is on
-  }                                           // to go back to normal run exit
-  if (inStringpc.equalsIgnoreCase("exit"))    // Close, same as EXIT on JBDTools
+  }                                           // to go back to normal run exit, doesnt last long, 5 mins?
+  // not sure what triggers an exit
+  if (inStringpc.equalsIgnoreCase("exit"))    // EXIT, same as EXIT on JBDTools
     call_Exit_Mode();                         // BUT, if any mosfet controls are actioned, it effectively runs EXIT
   // JBDTools has same issue.
   //  bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb balance control end    bbbbbbbbbbbbbbb
+
   // get hardware info
-  call_Hardware_info();    // dont really need this
-  get_bms_feedback_25();   // or this
+  call_Hardware_info(); // requests model number etc
+  get_bms_feedback();   // get that data
+  Serial.print("   ");
+  Serial.print(inString); // and print it out
+
 
   // get basic information
-  call_Basic_info();      // used to get BALANCE STATE byte 17dec
-  get_bms_feedback_34();   //
+  call_Basic_info();      // requests basic info cells etc, but I dont use.
+  get_bms_feedback();   // get that data, used to get BALANCE STATE byte 17-4 decimal
+  Serial.print(" BC= ");
+  BalanceCode = inInts[13];
+  print_binary(BalanceCode, 8);// print balance state as binary, cell 1 on the right, cell 8 on left
+  inString = "";
+
 
   // tidy up
-  Serial.print(inStringpc);
+  Serial.print(inStringpc); // prints a copy of commands from serial monitor. Wanted it down here out the way
   inStringpc = ""; //clear inString from getcommand
   // new line, what ever happens
   Serial.println("");
@@ -409,7 +420,7 @@ void call_control_off_off()
   // get_bms_feedback_7();
   control_off_off();
   // get_bms_feedback_7();
-  control_line_3();
+   control_line_3();
   // get_bms_feedback_7();
 }
 //----------------------------------------------------------------------
@@ -514,24 +525,13 @@ void control_off_off()
 {
   flush(); // flush first
   delay(50);
-  // legacy of old method during testing //   DD 5A  E1 02 00 03  FF 1A  77
+  //   DD 5A  E1 02 00 03  FF 1A  77
   //  221 90 225  2  0  3 255 26 119
-  /*
-    MySerial.write(221);    //write control_off_off
-    MySerial.write(90);
-    MySerial.write(225);
-    MySerial.write(2);
-    MySerial.write(0);
-    MySerial.write(3); // 11
-    MySerial.write(255);
-    MySerial.write(26);
-    MySerial.write(119);
-  */
   uint8_t data[9] = {221, 90, 225, 2, 0, 3, 255, 26, 119};
   MySerial.write(data, 9);
 }
 //--------------------------------------------------------------------------
-void Open_Odd_Cells()
+void Open_Odd_Cells()     // balancing
 {
   flush(); // flush first
   // delay(500);
@@ -540,17 +540,16 @@ void Open_Odd_Cells()
   MySerial.write(data, 9);
 }
 //--------------------------------------------------------------------------
-void Open_Even_Cells()
+void Open_Even_Cells()    // balancing
 {
   flush(); // flush first
   // delay(500);
   //   DD 5A  E2 02 00 02  FF 1A  77
   uint8_t data[9] = {221, 90, 226, 2, 0, 2, 255, 26, 119};
   MySerial.write(data, 9);
-
 }
 //--------------------------------------------------------------------------
-void Close_All()
+void Close_All()      // balancing
 {
   flush(); // flush first
   // delay(500);
@@ -560,8 +559,7 @@ void Close_All()
   MySerial.write(data, 9);
 }
 //--------------------------------------------------------------------------
-
-void Exit_Mode()
+void Exit_Mode()      // balancing
 {
   flush(); // flush first
   // delay(500);
@@ -578,64 +576,68 @@ void flush()
   }
 }
 //--------------------------------------------------------------------------
-void get_bms_feedback_34()
+void get_bms_feedback()  // returns with up to date, inString= chars, inInts= numbers, Length
+// can handle all now,
 {
+  inString = ""; // clear instring for new incoming
   delay(100); // give it a mo to settle, seems to miss occasionally without this
   if (MySerial.available() > 0) {
-    for (int i = 0; i < 34; i++) {
-      incomingByte = MySerial.read();
-      if (i == 17) {
-        BalanceCode = (incomingByte);  // save balance code, but continue with the rest, may want it late
+    {
+      for (int i = 0; i < 4; i++)               // just get first 4 bytes
+      {
+        incomingByte = MySerial.read();
+        if (i == 3)
+        {                           // could look at 3rd byte, it's the ok signal
+          Length = (incomingByte); // The fourth byte holds the length of data, excluding last 3 bytes checksum etc
+        }
+        if (Length == 0) {Length=1;} // in some responses, length=0, dont want that, so, make Length=1
       }
-      inString += (char)incomingByte;  // convert the incoming byte to a char and add it to the string
+      for (int i = 0; i < Length; i++) {
+        incomingByte = MySerial.read(); // get the rest of the data, how long it might be.
+        inString += (char)incomingByte; // convert the incoming byte to a char and add it to the string
+        inInts[i] = incomingByte;       // save incoming byte to array
+      }
     }
   }
-  Serial.print(" BC= ");
- Serial.print(BalanceCode,BIN); 
-  inString = "";
 }
-//--------------------------------------------------------------------------
-void get_bms_feedback_25()
-{
-  delay(100); // give it a mo to settle, seems to miss occasionally without this
-  if (MySerial.available() > 0) {
-    for (int i = 0; i < 25; i++) {
-      incomingByte = MySerial.read();
-      //Serial.print(incomingByte);
-      inString += (char)incomingByte;  // convert the incoming byte to a char and add it to the string
-      //inString = inString + (char)incomingByte;
-    }
-  }
-  inString = (inString.substring(4, 22));
-  Serial.print("   ");
-  Serial.print(inString); // and print it out
-  inString = "";
-}
-//--------------------------------------------------------------------------
-void get_bms_feedback_7()
-{
-  delay(100); // give it a mo to settle
-  if (MySerial.available() > 0) {
-    for (int i = 0; i < 7; i++) {
-      incomingByte = MySerial.read();
-      Serial.print(incomingByte);
-      Serial.print(" ");
-      inString += (char)incomingByte;  // convert the incoming byte to a char and add it to the string
-      //inString = inString + (char)incomingByte;
-    }
-  }
-  Serial.print("     ");
-  Serial.println(inString);
-  inString = "";
-  Serial.println("..");
-  Serial.println("7777");
-}
+//----------------------------------------------------------------------------------------------------
+
+//   if (newData == true) {
+
 //-----------------------------------------------------------------------------------------------------
+// gets input from serial monitor, and returns with inStringpc, holding it
 void getcommand() {
   while (Serial.available() > 0) {
     char incomingByte = Serial.read();
     if (incomingByte != '\n') {
       inStringpc += (char)incomingByte;
+    }
+  }
+}
+//-----------------------------------------------------------------------------------------------------
+void print_binary(int v, int num_places)
+// https://phanderson.com/arduino/arduino_display.html
+{
+  int mask = 0, n;
+  for (n = 1; n <= num_places; n++)
+  {
+    mask = (mask << 1) | 0x0001;
+  }
+  v = v & mask;  // truncate v to specified number of places
+  while (num_places)
+  {
+    if (v & (0x0001 << num_places - 1))
+    {
+      Serial.print("1");
+    }
+    else
+    {
+      Serial.print("0");
+    }
+    --num_places;
+    if (((num_places % 4) == 0) && (num_places != 0))
+    {
+      Serial.print("_");
     }
   }
 }
