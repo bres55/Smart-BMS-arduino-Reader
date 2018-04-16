@@ -37,8 +37,9 @@ void setup()
 //======================================================================================
 void loop()
 {
+  // delay(5000);
   getcommand(); // comes back with ...inStringpc...from IDE serial monitor, set newline option
-  
+
   // do we want to wait a while to view screen?
   // pause nn     or just disable Autoscroll
   if (inStringpc.substring(0, 5) == ("pause")) {
@@ -173,23 +174,25 @@ void loop()
     BYTE3 = 45;
     BYTE6 = 211;
     flush(); // flush first
+    delay (100);
     uint8_t data1[7] = {221, 165, BYTE3, 0, 255, BYTE6, 119};
     MySerial.write(data1, 7);
     get_bms_feedback(); // get the data reply
     // highbyte = (inInts[0]); // bytes 5 and 6, is where the actual data is
     BatteryConfigH = (inInts[0]);
     BatteryConfigL = (inInts[1]);
-    /*
-        Serial.print("  BatteryConfigH = ");
-        Serial.print( BatteryConfigH);
-        Serial.print("   ");
-        Serial.print("  BatteryConfigL = ");
-        Serial.print( BatteryConfigL);
-        Serial.print("   ");
-    */
+/*
+    Serial.print("  BatteryConfigH = ");
+    Serial.print( BatteryConfigH);
+    Serial.print("   ");
+    Serial.print("  BatteryConfigL = ");
+    Serial.print( BatteryConfigL);
+    Serial.print("   ");
+    delay (100);
+*/
     write_request_end(); // finished eprom reads
   } // end of show on/off
-
+  delay(100);
   // -------------------      EPROM READS END    -----------------------
 
   //-------------------- EPROM WRITES START ----------------------------------
@@ -228,6 +231,9 @@ void loop()
   // Checksum calculate
   // (data + length + command code) checksum, then Complement, then add 1, high bit first, low bit last
   if (bcln != bcl) {  // if they are not equal, we are trying to make a change
+    //Serial.print(bcl);
+    //Serial.print("  bcls"  );
+    //  Serial.print(bcln);
     bcl = bcln;
     Checksum = bcln + 47; // 45+2+(BYTE5+BYTE6)=47+0+bcln
     Checksum = Checksum ^ B11111111; // complement it, by XOR
@@ -241,8 +247,8 @@ void loop()
 
     uint8_t data[9] = {221, 90, 45, 2, BYTE5, BYTE6, 255, BYTE8, 119};
     MySerial.write(data, 9);
-    delay(100);
-    //  e_write_request_end(); // not needed
+
+    // e_write_request_end(); // not needed
     write_request_end(); // finished eprom reads, stick with this one
   }
   //  Show the state of BALANCE control // bits 2 and 3 and 0..switch en.
@@ -511,8 +517,13 @@ void loop()
   // new line, what ever happens
   Serial.println("");
   // How often do I want this data? Every 5,,10 seconds??
-  delay(10000);
-  // dont want to be over run with data!
+  int secs = 6;
+  for (int i = 0; i <= (secs); i ++) {
+    delay(1000);
+    write_request_start();// goto to keep it engaged,, found it doesnt like to be kept waiting too long
+    write_request_end() ; // 5 seconds without glitch
+    // but, dont want to be over run with data!
+  }
 }
 // eeeeeeeeeeeeeeeeeeeeennnnnnnnnnnnnnnnnnnnnnndddddddddddddddddddddd
 //     END
@@ -554,6 +565,7 @@ void call_Basic_info()
 // total voltage, current, Residual capacity, Balanced state, MOSFET control status
 {
   flush(); // flush first
+
   //  DD  A5 03 00  FF  FD  77
   // 221 165  3  0 255 253 119
   uint8_t data[7] = {221, 165, 3, 0, 255, 253, 119};
@@ -563,6 +575,7 @@ void call_Basic_info()
 void call_get_cells_v()
 {
   flush(); // flush first
+
   // DD  A5  4 0 FF  FC  77
   // 221 165 4 0 255 252 119
   uint8_t data[7] = {221, 165, 4, 0, 255, 252, 119};
@@ -572,6 +585,7 @@ void call_get_cells_v()
 void call_Hardware_info()
 {
   flush(); // flush first
+
   //  DD  A5 05 00  FF  FB  77
   // 221 165  5  0 255 251 119
   uint8_t data[7] = {221, 165, 5, 0, 255, 251, 119};
@@ -582,7 +596,7 @@ void call_Hardware_info()
 void write_request_start()
 {
   flush(); // flush first
-  delay(50);
+
   //   DD 5A 00  02 56  78  FF 30   77
   uint8_t data[9] = {221, 90, 0, 2, 86, 120, 255, 48, 119};
   MySerial.write(data, 9);
@@ -591,7 +605,7 @@ void write_request_start()
 void write_request_end()
 {
   flush(); // flush first
-  delay(50);
+
   //   DD 5A 01  02 00 00   FF  FD 77
   uint8_t data[9] = {221, 90, 1, 2, 0, 0, 255, 253, 119};
   MySerial.write(data, 9);
@@ -683,6 +697,7 @@ void flush()
   while (MySerial.available() > 0)
   { MySerial.read();
   }
+  delay(50); // give it a mo to settle, seems to miss occasionally without this
 }
 //--------------------------------------------------------------------------
 void get_bms_feedback()  // returns with up to date, inString= chars, inInts= numbers, chksum in last 2 bytes
