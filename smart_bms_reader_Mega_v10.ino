@@ -1,4 +1,4 @@
-// 13/04/2018
+// 11/6/2018
 // Using Arduino Mega256
 // https://github.com/bres55/Smart-BMS-arduino-Reader/blob/master/README.md
 /* If using UNO
@@ -12,7 +12,7 @@
     SoftwareSerial MySoftSerial(10, 11); // RX, TX  //  un rem
     #define MySerial MySoftSerial                    //  change MySerial
 */
-#define MySerial Serial1  // set this to the hardware serial port you wish to use... 
+#define MySerial Serial3  // set this to the hardware serial port you wish to use... 
 //                           Change to, MySoftSerial, if using uno
 
 String inString = "";      // string to hold input
@@ -23,13 +23,14 @@ byte Mosfet_control, mosfetnow, BatteryConfigH, BatteryConfigL, bcl, bcln, bch, 
 uint8_t BYTE1, BYTE2, BYTE3, BYTE4, BYTE5, BYTE6, BYTE7, BYTE8, BYTE9, BYTE10;
 uint8_t inInts[40], data[9];   // an array to hold incoming data, not seen any longer than 34 bytes, or 9
 uint16_t a16bitvar;
-float Cellv1, Cellv2, Cellv3, Cellv4, Cellv5, Cellv6, Cellv7, Cellv8, eresultf;
+float  eresultf; //Cellv1, Cellv2, Cellv3, Cellv4, Cellv5, Cellv6, Cellv7, Cellv8,
 float CellMin = 5, CellMax = 0, Cellsum = 0;
 
 //ssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssss
 void setup()
 {
-  Serial.begin(9600); // will be sending all data to serial, for later analysis
+  // Serial.begin(9600); // will be sending all data to serial, for later analysis
+  Serial.begin(115200); // will be sending all data to serial, for later analysis
   MySerial.begin(9600);  // set the data rate for the MySerial port
 }
 //======================================================================================
@@ -37,7 +38,11 @@ void setup()
 //======================================================================================
 void loop()
 {
-  // delay(5000);
+  write_request_start();// Found this helps timing issue, by saying hello, hello.
+  write_request_end() ; // Or maybe it flushes out any rogue data.
+  write_request_start();// Any way it works,
+  write_request_end() ; // And accomodates long delays if you want them at the end.
+ 
   getcommand(); // comes back with ...inStringpc...from IDE serial monitor, set newline option
 
   // do we want to wait a while to view screen?
@@ -181,15 +186,15 @@ void loop()
     // highbyte = (inInts[0]); // bytes 5 and 6, is where the actual data is
     BatteryConfigH = (inInts[0]);
     BatteryConfigL = (inInts[1]);
-/*
-    Serial.print("  BatteryConfigH = ");
-    Serial.print( BatteryConfigH);
-    Serial.print("   ");
-    Serial.print("  BatteryConfigL = ");
-    Serial.print( BatteryConfigL);
-    Serial.print("   ");
-    delay (100);
-*/
+    /*
+        Serial.print("  BatteryConfigH = ");
+        Serial.print( BatteryConfigH);
+        Serial.print("   ");
+        Serial.print("  BatteryConfigL = ");
+        Serial.print( BatteryConfigL);
+        Serial.print("   ");
+        delay (100);
+    */
     write_request_end(); // finished eprom reads
   } // end of show on/off
   delay(100);
@@ -291,10 +296,10 @@ void loop()
     Serial.print("  ");
   }
 
-  Serial.print (" CellMax "); // diference heading
+  Serial.print (" CellMax "); // CellMax heading
   Serial.print("  ");
 
-  Serial.print (" CellMin "); // diference heading
+  Serial.print (" CellMin "); // CellMin heading
   Serial.print("  ");
 
   Serial.print (" Diff "); // diference heading
@@ -461,7 +466,7 @@ void loop()
   Serial.print(Mosfet_control);
   Serial.print(F("  Mosfet DisCharge = "));
   mosfetnow = mosfetnow >> 1; //>> (bitshift right) use variabe mosfetnow, move bit 1 to bit 0
-  Mosfet_control = mosfetnow & 1; //& (bitwise and) just want bit 1 again
+  Mosfet_control = mosfetnow & 1; //& (bitwise and) just want bit 0 again
   Serial.println(Mosfet_control);
   Serial.println("");
   Serial.println("   mcooff = charge off,    mdoff = discharge off");
@@ -507,6 +512,7 @@ void loop()
   //  Serial.print("BMS Name= " + inString.substring(0, 18) + "  "); // no need for now
 
   // tidy up
+   inStringpc.toUpperCase();
   Serial.print(inStringpc); //  prints a copy of commands from serial monitor. Wanted it down here out the way
   inStringpc = "";          //  clear inString from getcommand
   inString = "";
@@ -517,13 +523,13 @@ void loop()
   // new line, what ever happens
   Serial.println("");
   // How often do I want this data? Every 5,,10 seconds??
-  int secs = 6;
-  for (int i = 0; i <= (secs); i ++) {
-    delay(1000);
-    write_request_start();// goto to keep it engaged,, found it doesnt like to be kept waiting too long
-    write_request_end() ; // 5 seconds without glitch
+  //int secs = 10;
+  //for (int i = 0; i <= (secs); i ++) { // removed this for better solution at beginning
+    delay(10000);
+  //  write_request_start();// goto to keep it engaged,, found it doesnt like to be kept waiting too long
+  //  write_request_end() ; // 5 seconds without glitch
     // but, dont want to be over run with data!
-  }
+  //}
 }
 // eeeeeeeeeeeeeeeeeeeeennnnnnnnnnnnnnnnnnnnnnndddddddddddddddddddddd
 //     END
