@@ -36,7 +36,4 @@ That way I can see the output from the Serial.print commands, and later using so
 This is to be used in my other project, so I wont control using serial monitor myself, I will be using other data to make the switch overs, as and when required.
 This program allows you to test the smart bms and see the control codes to make the changes.
 
-I dont think I will do any more work on this as I have the codes I need now. Unless someone can show me how to control the Balance cells, ie which ones are balanced , so I can dictate with my own algorithm the balance sequence.
 
-Having taken the time to format this page github, wraps it all together...why???
-How do I stop that, to make this more legible??
